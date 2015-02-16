@@ -1,0 +1,5 @@
+*.suo
+ChessGui/bin
+ChessGui/obj
+ChessEngine/bin
+ChessEngine/obj
