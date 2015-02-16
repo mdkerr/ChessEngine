@@ -28,11 +28,54 @@ namespace ChessEngine
         }
 
         /// <summary>
-        /// Gets all possible legal moves on the current board for the specified player
+        /// Gets all moves on the current board for the specified player
         /// </summary>
         /// <param name="player"></param>
         /// <returns></returns>
         public List<Move> GetMoves( PlayerColor player )
+        {
+            return GetMoves( player, cur_board );
+        }
+
+        /// <summary>
+        /// Makes a move on the current board
+        /// </summary>
+        /// <param name="m"></param>
+        public void MakeMove( Move m )
+        {
+            board_history.Push( cur_board );
+            cur_board = MakeMove( m, cur_board );
+        }
+
+        /// <summary>
+        /// Undoes the last move, if there was a last move
+        /// </summary>
+        public void UndoMove()
+        {
+            if (board_history.Count > 0)
+            {
+                cur_board = board_history.Pop();
+            }
+        }
+
+        /// <summary>
+        /// Uses the AI to make a move for the player
+        /// </summary>
+        /// <param name="player"></param>
+        public void MakeMove(PlayerColor player)
+        {
+            Move m = AI.DetermineMove(cur_board, player);
+
+            MakeMove(m);
+        }
+
+        /// <summary>
+        /// Gets all possible legal moves on the board for the current player
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="board"></param>
+        /// <returns></returns>
+        internal static List<Move> GetMoves( PlayerColor player, Board board )
         {
             List<Move> ret = new List<Move>();
 
@@ -51,37 +94,36 @@ namespace ChessEngine
             }
 
             //get a list of all possible moves for the player
-            List<Move> moves = cur_board.GetMoves( player );
+            List<Move> moves = board.GetMoves( player );
 
             //Perform each move, and make sure its legal
             foreach( Move m in moves )
             {
-                MakeMove( m );
-                
-                if( !cur_board.IsAttacked( enemy, cur_board.pieces[ player_king_index ] ) )
+                Board next = MakeMove( m, board );
+
+                if (!next.IsAttacked(enemy, next.pieces[player_king_index]))
                 {
                     ret.Add( m );
                 }
-
-                //undo the last move, we dont need to check board_history count since we just made 1 move
-                cur_board = board_history.Pop();
             }
 
             return ret;
         }
 
         /// <summary>
-        /// Performs move m for the current board
+        /// Performs the move on the board, and returns the result
         /// </summary>
         /// <param name="m"></param>
-        public void MakeMove( Move m )
+        /// <param name="board"></param>
+        /// <returns></returns>
+        internal static Board MakeMove( Move m, Board board )
         {
             Board next_board = new Board();
 
             //copy piece positions and castle possibilities
             //NOTE: do not copy en passant possibility, as it resets after a turn
-            Array.Copy( cur_board.pieces, next_board.pieces, Board.INDEX_COUNT );
-            next_board.castle       = cur_board.castle;
+            Array.Copy( board.pieces, next_board.pieces, Board.INDEX_COUNT );
+            next_board.castle       = board.castle;
             next_board.enPassant    = 0;
 
             switch( m.type )
@@ -136,7 +178,7 @@ namespace ChessEngine
 
                 case MoveType.EnPassant:
                     //remove the en passant piece
-                    next_board.RemovePiece( cur_board.enPassant );
+                    next_board.RemovePiece( board.enPassant );
 
                     //move the piece
                     next_board.pieces[m.piece_index] &= ~m.from;
@@ -196,30 +238,7 @@ namespace ChessEngine
                     break;
             }
 
-            board_history.Push( cur_board );
-            cur_board = next_board;
-        }
-
-        /// <summary>
-        /// Undoes the last move, if there was a last move
-        /// </summary>
-        public void UndoMove()
-        {
-            if( board_history.Count > 0 )
-            {
-                cur_board = board_history.Pop();
-            }
-        }
-
-        /// <summary>
-        /// Uses the AI to make a move for the player
-        /// </summary>
-        /// <param name="player"></param>
-        public void MakeMove( PlayerColor player )
-        {
-            Move m = AI.DetermineMove( cur_board, player );
-
-            MakeMove( m );
+            return next_board;
         }
     }
 }

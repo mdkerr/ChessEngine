@@ -248,13 +248,16 @@ namespace ChessGui
                         if( move == null ) return;
                     }
 
-                    //selected_piece = null;
-
                     board_controller.MakeMove( move );
                     
-                    if (cur_player == PlayerColor.White) cur_player = PlayerColor.Black;
-                    else if (cur_player == PlayerColor.Black) cur_player = PlayerColor.White;
+                    //mdk - uncomment for no ai
+                    //if (cur_player == PlayerColor.White) cur_player = PlayerColor.Black;
+                    //else if (cur_player == PlayerColor.Black) cur_player = PlayerColor.White;
 
+                    UpdateBoardGrid();
+
+                    //mdk - uncomment for ai
+                    board_controller.MakeMove( PlayerColor.Black );
                     UpdateBoardGrid();
                     
                     possible_moves = board_controller.GetMoves( cur_player );

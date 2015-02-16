@@ -608,9 +608,9 @@ namespace ChessEngine
             //castle west
             if( ( castle & CASTLE_BIT_W_WEST ) != 0 )
             {
-                if( ( empty & 0x000000000000000C ) == 0x000000000000000C )
+                if( ( empty & 0x000000000000000E ) == 0x000000000000000E )
                 {
-                    if( !IsAttacked( PlayerColor.Black, 0x000000000000001C ) )
+                    if( !IsAttacked( PlayerColor.Black, 0x000000000000001E ) )
                     {
                         moves.Add( new Move( MoveType.CASTLE_W_WEST, INDEX_W_KING, p, 0x0000000000000004 ) );
                     }
@@ -662,9 +662,9 @@ namespace ChessEngine
             //castle west
             if( ( castle & CASTLE_BIT_B_WEST ) != 0 )
             {
-                if( ( empty & 0x0C00000000000000 ) == 0x0C00000000000000 )
+                if( ( empty & 0x0E00000000000000 ) == 0x0E00000000000000 )
                 {
-                    if( !IsAttacked( PlayerColor.White, 0xC100000000000000 ) )
+                    if( !IsAttacked( PlayerColor.White, 0x1E00000000000000 ) )
                     {
                         moves.Add( new Move( MoveType.CASTLE_B_WEST, INDEX_B_KING, p, 0x0400000000000000 ) );
                     }
