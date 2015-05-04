@@ -7,9 +7,21 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Grid x:Name="grid_board" Grid.Row="0" Margin="5" MouseMove="grid_board_MouseMove">
+        <DockPanel Grid.Row="0">
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Game">
+                    <MenuItem x:Name="menu_new_game" Header="New Game" Click="menu_new_game_Click"/>
+                    <MenuItem x:Name="menu_undo"     Header="Undo"     Click="menu_undo_Click"/>
+                    <MenuItem x:Name="menu_exit"     Header="Exit"     Click="menu_exit_Click"/>
+                </MenuItem>
+            </Menu>
+            <StackPanel></StackPanel>
+        </DockPanel>
+
+        <Grid x:Name="grid_board" Grid.Row="1" Margin="5" MouseMove="grid_board_MouseMove">
             <Grid.RowDefinitions>
                 <RowDefinition Height="100"/>
                 <RowDefinition Height="100"/>
@@ -31,8 +43,6 @@
                 <ColumnDefinition Width="100"/>
             </Grid.ColumnDefinitions>
         </Grid>
-
-        <Button Name="b_new_game" Grid.Row="1" Content="New Game" Click="b_new_game_Click" Height="30" Margin="5,0,5,5"/>
     </Grid>
 
 </Window>

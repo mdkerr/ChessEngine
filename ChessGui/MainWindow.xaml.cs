@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -53,12 +54,16 @@ namespace ChessGui
         {
             InitializeComponent();
 
-            board_controller    = new BoardController();
-            possible_moves      = new List<Move>();
-            selected_piece      = null;
-            selected_image      = new Image();
+            //initialize
+            board_controller    = new BoardController();    //handles board interaction
+            possible_moves      = new List<Move>();         //list of posssible moves
+            selected_piece      = null;                     //nothing is selected initially
+            selected_image      = new Image();              //ghost image of moving piece
+            background          = new Rectangle[64];        //background color of the squares on a chessboard
+            highlights          = new Rectangle[64];        //highlighed squares showing possible moves
+            foreground          = new Image[64];            //images of the pieces on the board
 
-            //white images
+            //initialize white images
             WHITE_PAWN = new BitmapImage();
             WHITE_PAWN.BeginInit();
             WHITE_PAWN.UriSource = new Uri(@"Resources/ClassicWhitePawn.png", UriKind.Relative);
@@ -101,7 +106,7 @@ namespace ChessGui
             WHITE_KING.DecodePixelWidth = 95;
             WHITE_KING.EndInit();
 
-            //black images
+            //initialize black images
             BLACK_PAWN = new BitmapImage();
             BLACK_PAWN.BeginInit();
             BLACK_PAWN.UriSource = new Uri(@"Resources/ClassicBlackPawn.png", UriKind.Relative);
@@ -144,11 +149,7 @@ namespace ChessGui
             BLACK_KING.DecodePixelWidth = 95;
             BLACK_KING.EndInit();
 
-            //create the board background and foreground
-            background = new Rectangle[64];
-            highlights = new Rectangle[64];
-            foreground = new Image[64];
-
+            //setup selected image
             selected_image.MouseDown    += MainWindow_MouseDown;
             selected_image.MouseUp      += MainWindow_MouseUp;
             selected_image.Opacity      = .5;
@@ -158,13 +159,15 @@ namespace ChessGui
 
             grid_board.Children.Add( selected_image );
 
-
+            //for each square on the board
             bool is_black = true;
             for( int i = 0; i < background.Length; i++ )
             {
+                //determine row and column
                 int row = 7 - ( i / 8 );
                 int col = i % 8;
 
+                //initialize the space
                 background[i] = new Rectangle();
                 highlights[i] = new Rectangle();
                 foreground[i] = new Image();
@@ -180,7 +183,7 @@ namespace ChessGui
                 highlights[i].Opacity = .85d;
                 foreground[i].Stretch = Stretch.None;
 
-
+                //set events for the space
                 background[i].MouseDown += MainWindow_MouseDown;
                 highlights[i].MouseDown += MainWindow_MouseDown;
                 foreground[i].MouseDown += MainWindow_MouseDown;
@@ -189,10 +192,12 @@ namespace ChessGui
                 highlights[i].MouseUp += MainWindow_MouseUp;
                 foreground[i].MouseUp += MainWindow_MouseUp;
 
+                //set z index of each control
                 background[i].SetValue( Canvas.ZIndexProperty, 0 );
                 highlights[i].SetValue( Canvas.ZIndexProperty, 1 );
                 foreground[i].SetValue( Canvas.ZIndexProperty, 2 );
 
+                //set row and column of each control
                 Grid.SetRow( background[i], row );
                 Grid.SetColumn( background[i], col );
 
@@ -202,10 +207,12 @@ namespace ChessGui
                 Grid.SetRow( foreground[i], row );
                 Grid.SetColumn( foreground[i], col );
 
+                //add to the board
                 grid_board.Children.Add( background[i] );
                 grid_board.Children.Add( highlights[i] );
                 grid_board.Children.Add( foreground[i] );
 
+                //color remains the same when moving between rows
                 if( col != 7 )
                 {
                     is_black = !is_black;
@@ -272,17 +279,18 @@ namespace ChessGui
 
         void MainWindow_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            selected_piece = sender as UIElement;
+            //get the selected piece, row and column
+            selected_piece  = sender as UIElement;
+            int grid_row    = Grid.GetRow(selected_piece);      //row on the display
+            int grid_col    = Grid.GetColumn(selected_piece);   //column on the display
+            int index_row   = 7 - grid_row;                     //index of row in board arrays
+            int index_col   = grid_col;                         //index of column in board arrays
 
-            //get row and col
-            int from_row = 7 - Grid.GetRow( selected_piece );
-            int from_col = Grid.GetColumn( selected_piece );
+            //determine the space that was clicked
+            ulong from = ( 1ul << index_col ) << ( 8 * index_row );
 
-            //show possible moves for that piece
-            ulong from = ( 1ul << from_col ) << ( 8 * from_row );
-
+            //show all moves for that space
             List<Move> moves = possible_moves.FindAll( m => m.from == from );
-
             foreach( Move m in moves )
             {
                 int index = 0;
@@ -297,36 +305,35 @@ namespace ChessGui
                 highlights[index].Fill = HIGHLIGHT_COLOR;
             }
             
-            //set ghost drag image
-            selected_image.Source = foreground[(from_row * 8) + from_col].Source;
+            //move selected image to correct location
+            Grid.SetRow(selected_image, grid_row);
+            Grid.SetColumn(selected_image, grid_col);
+
+            //show selected image
+            selected_image.Source = foreground[(index_row * 8) + index_col].Source;
             selected_image.Visibility = System.Windows.Visibility.Visible;
         }
 
         private void grid_board_MouseMove(object sender, MouseEventArgs e)
         {
-            // Get the x and y coordinates of the mouse pointer.
-            System.Windows.Point position = e.GetPosition(this);
-            double pX = ( position.X - grid_board.Margin.Left ) / 100;
-            double pY = ( position.Y - grid_board.Margin.Top  ) / 100;
+            if( selected_image.Source != null )
+            {
+                // Get the x and y coordinates of the mouse pointer.
+                System.Windows.Point position = e.GetPosition(this);
+                double pX = ( position.X - grid_board.Margin.Left ) / 100;
+                double pY = ( position.Y - grid_board.Margin.Top  ) / 100;
 
-            //move the selected image
-            Grid.SetRow( selected_image, (int)pY );
-            Grid.SetColumn( selected_image, (int)pX );
-        }
-
-        private void b_new_game_Click(object sender, RoutedEventArgs e)
-        {
-            board_controller.Reset();
-            cur_player = PlayerColor.White;
-            possible_moves = board_controller.GetMoves(cur_player);
-
-            UpdateBoardGrid();
+                //move the selected image
+                Grid.SetRow( selected_image, (int)pY );
+                Grid.SetColumn( selected_image, (int)pX );
+            }
         }
 
         private void UpdateBoardGrid()
         {
             ulong[] cur_board = board_controller.cur_board.pieces;
 
+            //update each square on the board with the appropriate piece
             ulong cur = 1ul;
             for( int i = 0; i < 64; i++ )
             {
@@ -385,6 +392,33 @@ namespace ChessGui
 
                 cur <<= 1;   
             }
+        }
+
+        private void menu_exit_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void menu_undo_Click(object sender, RoutedEventArgs e)
+        {
+            //undo the ai's last move, then the players last move
+            board_controller.UndoMove();
+            board_controller.UndoMove();
+
+            //reset to that board
+            possible_moves = board_controller.GetMoves(cur_player);
+            UpdateBoardGrid();
+
+        }
+
+        private void menu_new_game_Click(object sender, RoutedEventArgs e)
+        {
+            //reset the board
+            board_controller.Reset();
+            cur_player      = PlayerColor.White;
+            possible_moves  = board_controller.GetMoves(cur_player);
+
+            UpdateBoardGrid();
         }
     }
 }
