@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChessEngine
 {
     public class BoardController
     {
-        public  Board           cur_board { get; private set; }
+        public  Board           cur_board           { get; private set; }
         private Stack<Board>    board_history;
 
         public BoardController()
         {
-            cur_board = new Board();
+            cur_board     = new Board();
             board_history = new Stack<Board>();
         }
 
@@ -32,19 +28,19 @@ namespace ChessEngine
         /// </summary>
         /// <param name="player"></param>
         /// <returns></returns>
-        public List<Move> GetMoves( PlayerColor player )
+        public List<Move> GetMoves(PlayerColor player)
         {
-            return GetMoves( player, cur_board );
+            return GetMoves(player, cur_board);
         }
 
         /// <summary>
         /// Makes a move on the current board
         /// </summary>
         /// <param name="m"></param>
-        public void MakeMove( Move m )
+        public void MakeMove(Move m)
         {
-            board_history.Push( cur_board );
-            cur_board = MakeMove( m, cur_board );
+            board_history.Push(cur_board);
+            cur_board = MakeMove(m, cur_board);
         }
 
         /// <summary>
@@ -75,14 +71,15 @@ namespace ChessEngine
         /// <param name="player"></param>
         /// <param name="board"></param>
         /// <returns></returns>
-        internal static List<Move> GetMoves( PlayerColor player, Board board )
+        internal static List<Move> GetMoves(PlayerColor player, Board board)
         {
+            //locals
             List<Move> ret = new List<Move>();
-
             PlayerColor enemy;
             int player_king_index;
 
-            if( player == PlayerColor.White )
+            //determine enemy and king index
+            if(player == PlayerColor.White)
             {
                 enemy = PlayerColor.Black;
                 player_king_index = Board.INDEX_W_KING;
@@ -94,16 +91,16 @@ namespace ChessEngine
             }
 
             //get a list of all possible moves for the player
-            List<Move> moves = board.GetMoves( player );
+            List<Move> moves = board.GetMoves(player);
 
             //Perform each move, and make sure its legal
-            foreach( Move m in moves )
+            foreach(Move m in moves)
             {
-                Board next = MakeMove( m, board );
+                Board next = MakeMove(m, board);
 
                 if (!next.IsAttacked(enemy, next.pieces[player_king_index]))
                 {
-                    ret.Add( m );
+                    ret.Add(m);
                 }
             }
 
@@ -116,20 +113,20 @@ namespace ChessEngine
         /// <param name="m"></param>
         /// <param name="board"></param>
         /// <returns></returns>
-        internal static Board MakeMove( Move m, Board board )
+        internal static Board MakeMove(Move m, Board board)
         {
             Board next_board = new Board();
 
             //copy piece positions and castle possibilities
             //NOTE: do not copy en passant possibility, as it resets after a turn
-            Array.Copy( board.pieces, next_board.pieces, Board.INDEX_COUNT );
+            Array.Copy(board.pieces, next_board.pieces, Board.INDEX_COUNT);
             next_board.castle       = board.castle;
             next_board.enPassant    = 0;
 
-            switch( m.type )
+            switch(m.type)
             {
                 case MoveType.SinglePush:
-                    if( m.promote_piece_index != -1 )
+                    if(m.promote_piece_index != Board.INDEX_COUNT)
                     {
                         //promote the pawn
                         next_board.pieces[m.piece_index] &= ~m.from;
@@ -162,7 +159,7 @@ namespace ChessEngine
                     //remove the captured piece
                     next_board.RemovePiece( m.to );
 
-                    if (m.promote_piece_index != -1)
+                    if(m.promote_piece_index != Board.INDEX_COUNT)
                     {
                         //promote the pawn
                         next_board.pieces[m.piece_index] &= ~m.from;
@@ -178,7 +175,7 @@ namespace ChessEngine
 
                 case MoveType.EnPassant:
                     //remove the en passant piece
-                    next_board.RemovePiece( board.enPassant );
+                    next_board.RemovePiece(board.enPassant);
 
                     //move the piece
                     next_board.pieces[m.piece_index] &= ~m.from;
@@ -195,7 +192,7 @@ namespace ChessEngine
                     next_board.pieces[Board.INDEX_W_ROOKS] |= 0x0000000000000020;
 
                     //update castling
-                    next_board.castle &= ~( Board.CASTLE_BIT_W_EAST | Board.CASTLE_BIT_W_WEST );
+                    next_board.castle &= ~(Board.CASTLE_BIT_W_EAST | Board.CASTLE_BIT_W_WEST);
                     break;
 
                 case MoveType.CASTLE_W_WEST:
@@ -208,7 +205,7 @@ namespace ChessEngine
                     next_board.pieces[Board.INDEX_W_ROOKS] |= 0x0000000000000008;
 
                     //update castling
-                    next_board.castle &= ~( Board.CASTLE_BIT_W_EAST | Board.CASTLE_BIT_W_WEST );
+                    next_board.castle &= ~(Board.CASTLE_BIT_W_EAST | Board.CASTLE_BIT_W_WEST);
                     break;
 
                 case MoveType.CASTLE_B_EAST:

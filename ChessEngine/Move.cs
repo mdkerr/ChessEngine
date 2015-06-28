@@ -1,44 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ChessEngine
+﻿namespace ChessEngine
 {
-    //Possible types of moves
-    public enum MoveType
+    public enum MoveType : byte
     {
-        SinglePush,
-        DoublePush,
-        Slide,
-        Capture,
-        EnPassant,
-        CASTLE_W_EAST,
-        CASTLE_W_WEST,
-        CASTLE_B_EAST,
-        CASTLE_B_WEST
+        SinglePush,         //pawn one space forward
+        DoublePush,         //pawn two spaces forward
+        Slide,              //rook, knight, bishop, queen, and king
+        Capture,            //a piece was captured
+        EnPassant,          //enpassant move
+        CASTLE_W_EAST,      //castle white east
+        CASTLE_W_WEST,      //castle white west
+        CASTLE_B_EAST,      //castle black east
+        CASTLE_B_WEST       //castle black west
     }
 
     public class Move
     {
         public MoveType type;                   //the type of move
-        public int      piece_index;            //the index of the piece moving
+        public byte     piece_index;            //the index of the piece moving
         public ulong    from;                   //from location
         public ulong    to;                     //to location
-        public int      promote_piece_index;    //index of piece to promote to, -1 when not used
+        public byte     promote_piece_index;    //index of piece to promote to, INDEX_COUNT when not used
 
-        public Move( MoveType type, int piece_index, ulong from, ulong to )
-        {
-            this.type                   = type;
-            this.piece_index            = piece_index;
-            this.from                   = from;
-            this.to                     = to;
-            this.promote_piece_index    = -1;
-
-        }
-
-        public Move( MoveType type, int piece_index, ulong from, ulong to, int promote_piece_index )
+        public Move(MoveType type, byte piece_index, ulong from, ulong to, byte promote_piece_index = Board.INDEX_COUNT)
         {
             this.type                   = type;
             this.piece_index            = piece_index;

@@ -34,19 +34,19 @@ namespace ChessEngine
 
     public class Board
     {
-        public const int    INDEX_W_PAWNS    = 0;
-        public const int    INDEX_W_ROOKS    = 1;
-        public const int    INDEX_W_KNIGHTS  = 2;
-        public const int    INDEX_W_BISHOPS  = 3;
-        public const int    INDEX_W_QUEENS   = 4;
-        public const int    INDEX_W_KING     = 5;
-        public const int    INDEX_B_PAWNS    = 6;
-        public const int    INDEX_B_ROOKS    = 7;
-        public const int    INDEX_B_KNIGHTS  = 8;
-        public const int    INDEX_B_BISHOPS  = 9;
-        public const int    INDEX_B_QUEENS   = 10;
-        public const int    INDEX_B_KING     = 11;
-        public const int    INDEX_COUNT      = 12;
+        public const byte   INDEX_W_PAWNS    = 0;
+        public const byte   INDEX_W_ROOKS    = 1;
+        public const byte   INDEX_W_KNIGHTS  = 2;
+        public const byte   INDEX_W_BISHOPS  = 3;
+        public const byte   INDEX_W_QUEENS   = 4;
+        public const byte   INDEX_W_KING     = 5;
+        public const byte   INDEX_B_PAWNS    = 6;
+        public const byte   INDEX_B_ROOKS    = 7;
+        public const byte   INDEX_B_KNIGHTS  = 8;
+        public const byte   INDEX_B_BISHOPS  = 9;
+        public const byte   INDEX_B_QUEENS   = 10;
+        public const byte   INDEX_B_KING     = 11;
+        public const byte   INDEX_COUNT      = 12;
 
         public const uint   CASTLE_BIT_W_EAST = 1;
         public const uint   CASTLE_BIT_W_WEST = 2;
@@ -59,7 +59,7 @@ namespace ChessEngine
 
         internal Board()
         {
-            pieces = new ulong[ INDEX_COUNT ];
+            pieces = new ulong[INDEX_COUNT];
         }
 
         /// <summary>
@@ -67,22 +67,23 @@ namespace ChessEngine
         /// </summary>
         internal void Reset()
         {
-            pieces[ INDEX_W_PAWNS   ] = 0x000000000000FF00;
-            pieces[ INDEX_W_ROOKS   ] = 0x0000000000000081;
-            pieces[ INDEX_W_KNIGHTS ] = 0x0000000000000042;
-            pieces[ INDEX_W_BISHOPS ] = 0x0000000000000024;
-            pieces[ INDEX_W_QUEENS  ] = 0x0000000000000008;
-            pieces[ INDEX_W_KING    ] = 0x0000000000000010;
+            //reset pieces to their initial positions
+            pieces[INDEX_W_PAWNS  ] = 0x000000000000FF00;
+            pieces[INDEX_W_ROOKS  ] = 0x0000000000000081;
+            pieces[INDEX_W_KNIGHTS] = 0x0000000000000042;
+            pieces[INDEX_W_BISHOPS] = 0x0000000000000024;
+            pieces[INDEX_W_QUEENS ] = 0x0000000000000008;
+            pieces[INDEX_W_KING   ] = 0x0000000000000010;
 
-            pieces[ INDEX_B_PAWNS   ] = 0x00FF000000000000;
-            pieces[ INDEX_B_ROOKS   ] = 0x8100000000000000;
-            pieces[ INDEX_B_KNIGHTS ] = 0x4200000000000000;
-            pieces[ INDEX_B_BISHOPS ] = 0x2400000000000000;
-            pieces[ INDEX_B_QUEENS  ] = 0x0800000000000000;
-            pieces[ INDEX_B_KING    ] = 0x1000000000000000;
+            pieces[INDEX_B_PAWNS  ] = 0x00FF000000000000;
+            pieces[INDEX_B_ROOKS  ] = 0x8100000000000000;
+            pieces[INDEX_B_KNIGHTS] = 0x4200000000000000;
+            pieces[INDEX_B_BISHOPS] = 0x2400000000000000;
+            pieces[INDEX_B_QUEENS ] = 0x0800000000000000;
+            pieces[INDEX_B_KING   ] = 0x1000000000000000;
 
+            //reset enpassant and castle flags
             enPassant = 0;
-
             castle = CASTLE_BIT_W_EAST | CASTLE_BIT_W_WEST | CASTLE_BIT_B_EAST | CASTLE_BIT_B_WEST;
         }
 
@@ -90,9 +91,9 @@ namespace ChessEngine
         /// Removes all pieces from the specified location
         /// </summary>
         /// <param name="piece"></param>
-        internal void RemovePiece( ulong piece )
+        internal void RemovePiece(ulong piece)
         {
-            for( int i = 0; i < INDEX_COUNT; i++ )
+            for(int i = 0; i < INDEX_COUNT; i++)
             {
                 pieces[ i ] &= ~piece;
             }
@@ -104,15 +105,17 @@ namespace ChessEngine
         /// <param name="by"></param>
         /// <param name="space"></param>
         /// <returns></returns>
-        internal bool IsAttacked( PlayerColor by, ulong space )
+        internal bool IsAttacked(PlayerColor by, ulong space)
         {
             ulong attacks = 0ul;
             ulong empty = EmptySpaces();
 
-            if( by == PlayerColor.White )
+            if(by == PlayerColor.White)
             {
+                //get white pawn attacks
                 attacks |= GetAttacks_WhitePawns(pieces[INDEX_W_PAWNS]);
 
+                //get white rook attacks
                 ulong rooks = pieces[INDEX_W_ROOKS];
                 while (rooks != 0)
                 {
@@ -123,8 +126,10 @@ namespace ChessEngine
                     rooks &= ~cur_rook;
                 }
 
+                //get white knight attacks
                 attacks |= GetAttacks_Knight(pieces[INDEX_W_KNIGHTS]);
 
+                //get white bishop attacks
                 ulong bishop = pieces[INDEX_W_BISHOPS];
                 while (bishop != 0)
                 {
@@ -135,6 +140,7 @@ namespace ChessEngine
                     bishop &= ~cur_bishop;
                 }
 
+                //get white queen attacks
                 ulong queens = pieces[INDEX_W_QUEENS];
                 while (queens != 0)
                 {
@@ -146,12 +152,15 @@ namespace ChessEngine
                     queens &= ~cur_queen;
                 }
 
+                //get white king attacks
                 attacks |= GetAttacks_King(pieces[INDEX_W_KING]);
             }
             else
             {
+                //get black pawn attacks
                 attacks |= GetAttacks_BlackPawns(pieces[INDEX_B_PAWNS]);
 
+                //get black rook attacks
                 ulong rooks = pieces[INDEX_B_ROOKS];
                 while (rooks != 0)
                 {
@@ -162,8 +171,10 @@ namespace ChessEngine
                     rooks &= ~cur_rook;
                 }
 
+                //get black knight attacks
                 attacks |= GetAttacks_Knight(pieces[INDEX_B_KNIGHTS]);
 
+                //get black bishop attacks
                 ulong bishop = pieces[INDEX_B_BISHOPS];
                 while (bishop != 0)
                 {
@@ -174,6 +185,7 @@ namespace ChessEngine
                     bishop &= ~cur_bishop;
                 }
 
+                //get black queen attacks
                 ulong queens = pieces[INDEX_B_QUEENS];
                 while (queens != 0)
                 {
@@ -185,21 +197,19 @@ namespace ChessEngine
                     queens &= ~cur_queen;
                 }
 
+                //get black king attacks
                 attacks |= GetAttacks_King(pieces[INDEX_B_KING]);
             }
 
-            if ((attacks & space) != 0) return true;
-
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
+            return((attacks & space) != 0);
         }
 
     #region board masks
 
+        /// <summary>
+        /// All spaces occupied by white pieces
+        /// </summary>
+        /// <returns></returns>
         private ulong WhitePieces()
         {
             return( pieces[ INDEX_W_PAWNS   ] 
@@ -210,6 +220,10 @@ namespace ChessEngine
                   | pieces[ INDEX_W_KING    ] ); 
         }
 
+        /// <summary>
+        /// All spaces occupied by black pieces
+        /// </summary>
+        /// <returns></returns>
         private ulong BlackPieces()
         {
             return( pieces[ INDEX_B_PAWNS   ] 
@@ -220,11 +234,19 @@ namespace ChessEngine
                   | pieces[ INDEX_B_KING    ] );
         }
 
+        /// <summary>
+        /// All occupied spaces
+        /// </summary>
+        /// <returns></returns>
         private ulong AllPieces()
         {
             return( WhitePieces() | BlackPieces() );
         }
 
+        /// <summary>
+        /// All unoccupied spaces
+        /// </summary>
+        /// <returns></returns>
         private ulong EmptySpaces()
         {
             return( ~AllPieces() );
@@ -235,7 +257,7 @@ namespace ChessEngine
     #region get moves
 
         /// <summary>
-        /// Gets all possible moves for the current player
+        /// Gets all possible moves for the specified player
         /// Note: does not check if move is legal
         /// </summary>
         /// <param name="player"></param>
@@ -243,12 +265,12 @@ namespace ChessEngine
         internal List<Move> GetMoves(PlayerColor player)
         {
             List<Move> moves = new List<Move>();
-
             ulong empty = EmptySpaces();
             ulong enemy;
 
             switch (player)
             {
+                //get all moves for the white player
                 case PlayerColor.White:
                     enemy = BlackPieces();
                     moves.AddRange(GetMoves_W_Pawns(enPassant, pieces[INDEX_W_PAWNS], enemy, empty));
@@ -260,6 +282,7 @@ namespace ChessEngine
                     moves.AddRange(GetMoves_W_King(enemy, empty));
                     break;
 
+                //get all moves for the balck player
                 case PlayerColor.Black:
                     enemy = WhitePieces();
                     moves.AddRange(GetMoves_B_Pawns(enPassant, pieces[INDEX_B_PAWNS], enemy, empty));
@@ -270,15 +293,20 @@ namespace ChessEngine
                     moves.AddRange(GetMoves_Bishop(INDEX_B_QUEENS, enemy, empty));
                     moves.AddRange(GetMoves_B_King(enemy, empty));
                     break;
-
-                default:
-                    return null;
             }
 
             return moves;
         }
 
-        private static List<Move> GetMoves_W_Pawns( ulong enPassant, ulong w_pawns, ulong black, ulong empty )
+        /// <summary>
+        /// Get all moves for white pawns, does not check legality of move
+        /// </summary>
+        /// <param name="enPassant">the space to move for the enpassant capture</param>
+        /// <param name="w_pawns">locations of the white pawns</param>
+        /// <param name="black">spaces occupied by black pieces</param>
+        /// <param name="empty">unoccupied spaces</param>
+        /// <returns></returns>
+        private static List<Move> GetMoves_W_Pawns(ulong enPassant, ulong w_pawns, ulong black, ulong empty)
         {
             List<Move> moves = new List<Move>();
 
@@ -369,7 +397,15 @@ namespace ChessEngine
             return moves;
         }
 
-        private static List<Move> GetMoves_B_Pawns( ulong enPassant, ulong b_pawns, ulong white, ulong empty )
+        /// <summary>
+        /// Get all moves for black pawns, does not check legality of move
+        /// </summary>
+        /// <param name="enPassant">the space to move for the enpassant capture</param>
+        /// <param name="b_pawns">locations of the black pawns</param>
+        /// <param name="white">spaces occupied by white pieces</param>
+        /// <param name="empty">unoccupied spaces</param>
+        /// <returns></returns>
+        private static List<Move> GetMoves_B_Pawns(ulong enPassant, ulong b_pawns, ulong white, ulong empty)
         {
             List<Move> moves = new List<Move>();
 
@@ -460,24 +496,37 @@ namespace ChessEngine
             return moves;
         }
 
-        private List<Move> GetMoves_Rook( int piece_index, ulong enemy, ulong empty )
+        /// <summary>
+        /// Get all rook moves for the specified pieces
+        /// </summary>
+        /// <param name="piece_index">pieces to get rook moves for</param>
+        /// <param name="enemy">spaces occupied by the enemy</param>
+        /// <param name="empty">unoccupied spaces</param>
+        /// <returns></returns>
+        private List<Move> GetMoves_Rook(byte piece_index, ulong enemy, ulong empty)
         {
             List<Move> moves = new List<Move>();
             ulong p = pieces[ piece_index ];
 
             while( p != 0 )
             {
+                //get the next piece
                 ulong cur_piece = p & (ulong)-(long)p;
+
+                //get possible moves for the piece
                 ulong attacks = GetAttacks_Rook( cur_piece, empty );
 
                 while( attacks != 0 )
                 {
+                    //get the next attack
                     ulong cur_attack = attacks & (ulong)-(long)attacks;
 
+                    //check for slide moves
                     if( ( cur_attack & empty ) != 0 )
                     {
                         moves.Add( new Move( MoveType.Slide, piece_index, cur_piece, cur_attack ) );
                     }
+                    //check for capture moves
                     else
                     {
                         if( ( cur_attack & enemy ) != 0 )
@@ -495,24 +544,37 @@ namespace ChessEngine
             return moves;
         }
 
-        private List<Move> GetMoves_Bishop( int piece_index, ulong enemy, ulong empty )
+        /// <summary>
+        /// Get all bishop moves for the specified pieces
+        /// </summary>
+        /// <param name="piece_index">pieces to get rook moves for</param>
+        /// <param name="enemy">spaces occupied by the enemy</param>
+        /// <param name="empty">unoccupied spaces</param>
+        /// <returns></returns>
+        private List<Move> GetMoves_Bishop(byte piece_index, ulong enemy, ulong empty)
         {
             List<Move> moves = new List<Move>();
             ulong p = pieces[piece_index];
 
             while (p != 0)
             {
+                //get the next piece
                 ulong cur_piece = p & (ulong)-(long)p;
+
+                //get possible moves for the piece
                 ulong attacks = GetAttacks_Bishop(cur_piece, empty);
 
                 while( attacks != 0 )
                 {
+                    //get the next attack
                     ulong cur_attack = attacks & (ulong)-(long)attacks;
 
+                    //check for slide moves
                     if( ( cur_attack & empty ) != 0 )
                     {
                         moves.Add( new Move( MoveType.Slide, piece_index, cur_piece, cur_attack ) );
                     }
+                    //check for capture moves
                     else
                     {
                         if( ( cur_attack & enemy ) != 0 )
@@ -530,25 +592,37 @@ namespace ChessEngine
             return moves;
         }
 
-        private List<Move> GetMoves_Knight( int piece_index, ulong enemy, ulong empty )
+        /// <summary>
+        /// Get all knight moves for the specified pieces
+        /// </summary>
+        /// <param name="piece_index">pieces to get rook moves for</param>
+        /// <param name="enemy">spaces occupied by the enemy</param>
+        /// <param name="empty">unoccupied spaces</param>
+        /// <returns></returns>
+        private List<Move> GetMoves_Knight(byte piece_index, ulong enemy, ulong empty)
         {
             List<Move> moves = new List<Move>();
-
             ulong p = pieces[ piece_index ];
 
             while( p != 0 )
             {
+                //get the next piece
                 ulong cur_piece = p & (ulong)-(long)p;
+
+                //get possible moves for the piece
                 ulong attacks = GetAttacks_Knight( cur_piece );
 
                 while( attacks != 0 )
                 {
+                    //get the next attack
                     ulong cur_attack = attacks & (ulong)-(long)attacks;
 
+                    //check for slide moves
                     if( ( cur_attack & empty ) != 0 )
                     {
                         moves.Add( new Move( MoveType.Slide, piece_index, cur_piece, cur_attack ) );
                     }
+                    //check for capture moves
                     else
                     {
                         if( ( cur_attack & enemy ) != 0 )
@@ -566,22 +640,32 @@ namespace ChessEngine
             return moves;
         }
 
-        private List<Move> GetMoves_W_King( ulong enemy, ulong empty )
+
+        /// <summary>
+        /// Get all moves for the white king
+        /// </summary>
+        /// <param name="enemy">spaces occupied by the enemy</param>
+        /// <param name="empty">unoccupied spaces</param>
+        /// <returns></returns>
+        private List<Move> GetMoves_W_King(ulong enemy, ulong empty)
         {
             List<Move> moves = new List<Move>();
-
             ulong p = pieces[ INDEX_W_KING ];
+            
+            //get possible moves
             ulong attacks = GetAttacks_King( p );
 
-            //normal moves
             while( attacks != 0 )
             {
+                //get the next attack
                 ulong cur_attack = attacks & (ulong)-(long)attacks;
 
+                //check for slide moves
                 if( ( cur_attack & empty ) != 0 )
                 {
                     moves.Add( new Move( MoveType.Slide, INDEX_W_KING, p, cur_attack ) );
                 }
+                //check for capture moves
                 else
                 {
                     if( ( cur_attack & enemy ) != 0 )
@@ -620,22 +704,31 @@ namespace ChessEngine
             return moves;
         }
 
+        /// <summary>
+        /// Get all moves for the black king
+        /// </summary>
+        /// <param name="enemy">spaces occupied by the enemy</param>
+        /// <param name="empty">unoccupied spaces</param>
+        /// <returns></returns>
         private List<Move> GetMoves_B_King( ulong enemy, ulong empty )
         {
             List<Move> moves = new List<Move>();
-
             ulong p = pieces[ INDEX_B_KING ];
+
+            //get possible moves
             ulong attacks = GetAttacks_King( p );
 
-            //normal moves
             while( attacks != 0 )
             {
+                //get the next attack
                 ulong cur_attack = attacks & (ulong)-(long)attacks;
 
+                //check for slide moves
                 if( ( cur_attack & empty ) != 0 )
                 {
                     moves.Add( new Move( MoveType.Slide, INDEX_B_KING, p, cur_attack ) );
                 }
+                //check for capture moves
                 else
                 {
                     if( ( cur_attack & enemy ) != 0 )
@@ -678,6 +771,11 @@ namespace ChessEngine
 
     #region get attacks
 
+        /// <summary>
+        /// Get all possible spaces white pawns can attack
+        /// </summary>
+        /// <param name="pawns">location of the white pawns</param>
+        /// <returns></returns>
         private static ulong GetAttacks_WhitePawns(ulong pawns)
         {
             ulong attacks = 0L;
@@ -688,6 +786,11 @@ namespace ChessEngine
             return attacks;
         }
 
+        /// <summary>
+        /// Get all possible spaces black pawns can attack
+        /// </summary>
+        /// <param name="pawns">location of black pawns</param>
+        /// <returns></returns>
         private static ulong GetAttacks_BlackPawns(ulong pawns)
         {
             ulong attacks = 0L;
@@ -698,11 +801,18 @@ namespace ChessEngine
             return attacks;
         }
 
-        private static ulong GetAttacks_Rook( ulong piece, ulong empty )
+        /// <summary>
+        /// Get all possible spaces rooks can attack
+        /// </summary>
+        /// <param name="piece">location of rooks</param>
+        /// <param name="empty">empty spaces</param>
+        /// <returns></returns>
+        private static ulong GetAttacks_Rook(ulong piece, ulong empty)
         {
             ulong attacks = 0ul;
             ulong slide;
 
+            //get north attacks
             slide = piece;
             while (slide != 0)
             {
@@ -712,6 +822,7 @@ namespace ChessEngine
                 if ((slide & empty) == 0) break;
             }
 
+            //get south attacks
             slide = piece;
             while (slide != 0)
             {
@@ -721,6 +832,7 @@ namespace ChessEngine
                 if ((slide & empty) == 0) break;
             }
 
+            //get east attacks
             slide = piece;
             while (slide != 0)
             {
@@ -730,6 +842,7 @@ namespace ChessEngine
                 if ((slide & empty) == 0) break;
             }
 
+            //get west attacks
             slide = piece;
             while (slide != 0)
             {
@@ -742,11 +855,18 @@ namespace ChessEngine
             return attacks;
         }
 
-        private static ulong GetAttacks_Bishop( ulong piece, ulong empty )
+        /// <summary>
+        /// Get all possible spaces bishops can attack
+        /// </summary>
+        /// <param name="piece">location of bishops</param>
+        /// <param name="empty">empty spaces</param>
+        /// <returns></returns>
+        private static ulong GetAttacks_Bishop(ulong piece, ulong empty)
         {
             ulong attacks = 0ul;
             ulong slide;
 
+            //get north-east attacks
             slide = piece;
             while (slide != 0)
             {
@@ -756,6 +876,7 @@ namespace ChessEngine
                 if ((slide & empty) == 0) break;
             }
 
+            //get south-east attacks
             slide = piece;
             while (slide != 0)
             {
@@ -765,6 +886,7 @@ namespace ChessEngine
                 if ((slide & empty) == 0) break;
             }
 
+            //get north-west attacks
             slide = piece;
             while (slide != 0)
             {
@@ -774,6 +896,7 @@ namespace ChessEngine
                 if ((slide & empty) == 0) break;
             }
 
+            //get south-west attacks
             slide = piece;
             while (slide != 0)
             {
@@ -786,7 +909,12 @@ namespace ChessEngine
             return attacks;
         }
 
-        private static ulong GetAttacks_Knight( ulong piece )
+        /// <summary>
+        /// Get all possible spaces knights can attack
+        /// </summary>
+        /// <param name="piece">the location of the knights</param>
+        /// <returns></returns>
+        private static ulong GetAttacks_Knight(ulong piece)
         {
             ulong attacks = 0ul;
 
@@ -802,6 +930,11 @@ namespace ChessEngine
             return attacks;
         }
 
+        /// <summary>
+        /// Get all possible spaces kings can attack
+        /// </summary>
+        /// <param name="piece">the location of the kings</param>
+        /// <returns></returns>
         private static ulong GetAttacks_King( ulong piece )
         {
             ulong attacks = 0ul;

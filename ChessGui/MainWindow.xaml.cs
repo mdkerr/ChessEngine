@@ -246,7 +246,7 @@ namespace ChessGui
 
                 if( move != null )
                 {
-                    if( move.promote_piece_index != -1 )
+                    if( move.promote_piece_index != Board.INDEX_COUNT )
                     {
                         PromoteDialog pd = new PromoteDialog(cur_player);
                         pd.ShowDialog();
