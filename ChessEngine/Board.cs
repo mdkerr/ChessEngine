@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ChessEngine
 {
@@ -56,6 +57,21 @@ namespace ChessEngine
         internal Board()
         {
             pieces = new ulong[INDEX_COUNT];
+        }
+
+        /// <summary>
+        /// Creates a new Board instance identical to this one
+        /// </summary>
+        /// <returns></returns>
+        internal Board Copy()
+        {
+            Board copy = new Board();
+
+            Array.Copy(pieces, copy.pieces, Board.INDEX_COUNT);
+            copy.castle    = castle;
+            copy.enPassant = enPassant;
+
+            return (copy);
         }
 
         /// <summary>

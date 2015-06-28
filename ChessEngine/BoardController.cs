@@ -7,11 +7,13 @@ namespace ChessEngine
     {
         public Board cur_board { get; private set; }
         private Stack<Board> board_history;
+        private AI ai;
 
         public BoardController()
         {
             cur_board = new Board();
             board_history = new Stack<Board>();
+            ai = new AI();
         }
 
         /// <summary>
@@ -60,7 +62,8 @@ namespace ChessEngine
         /// <param name="player"></param>
         public void MakeMove(PlayerColor player)
         {
-            Move m = AI.DetermineMove(cur_board, player);
+            //Move m = AI.DetermineMove(cur_board, player);
+            Move m = ai.DetermineMoveMultiThread(cur_board, player);
 
             MakeMove(m);
         }
@@ -117,7 +120,6 @@ namespace ChessEngine
         {
             Board next_board = new Board();
 
-            //TODO MDK - remove castling posibilities if king/rook is not in original location
             //copy piece positions and castle possibilities
             //NOTE: do not copy en passant possibility, as it resets after a turn
             Array.Copy(board.pieces, next_board.pieces, Board.INDEX_COUNT);
