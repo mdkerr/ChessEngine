@@ -5,12 +5,12 @@ namespace ChessEngine
 {
     public class BoardController
     {
-        public  Board           cur_board           { get; private set; }
-        private Stack<Board>    board_history;
+        public Board cur_board { get; private set; }
+        private Stack<Board> board_history;
 
         public BoardController()
         {
-            cur_board     = new Board();
+            cur_board = new Board();
             board_history = new Stack<Board>();
         }
 
@@ -79,7 +79,7 @@ namespace ChessEngine
             int player_king_index;
 
             //determine enemy and king index
-            if(player == PlayerColor.White)
+            if (player == PlayerColor.White)
             {
                 enemy = PlayerColor.Black;
                 player_king_index = Board.INDEX_W_KING;
@@ -94,7 +94,7 @@ namespace ChessEngine
             List<Move> moves = board.GetMoves(player);
 
             //Perform each move, and make sure its legal
-            foreach(Move m in moves)
+            foreach (Move m in moves)
             {
                 Board next = MakeMove(m, board);
 
@@ -117,16 +117,17 @@ namespace ChessEngine
         {
             Board next_board = new Board();
 
+            //TODO MDK - remove castling posibilities if king/rook is not in original location
             //copy piece positions and castle possibilities
             //NOTE: do not copy en passant possibility, as it resets after a turn
             Array.Copy(board.pieces, next_board.pieces, Board.INDEX_COUNT);
-            next_board.castle       = board.castle;
-            next_board.enPassant    = 0;
+            next_board.castle = board.castle;
+            next_board.enPassant = 0;
 
-            switch(m.type)
+            switch (m.type)
             {
                 case MoveType.SinglePush:
-                    if(m.promote_piece_index != Board.INDEX_COUNT)
+                    if (m.promote_piece_index != Board.INDEX_COUNT)
                     {
                         //promote the pawn
                         next_board.pieces[m.piece_index] &= ~m.from;
@@ -153,13 +154,24 @@ namespace ChessEngine
                     //move the piece
                     next_board.pieces[m.piece_index] &= ~m.from;
                     next_board.pieces[m.piece_index] |= m.to;
+
+                    //if we are moving from the white king/rook location, castling for white is no longer possible
+                    if((m.from & 0x0000000000000091) != 0)
+                        {
+                        next_board.castle &= ~(Board.CASTLE_BIT_W_EAST | Board.CASTLE_BIT_W_WEST);
+                        }
+                    //if we are moving from the black king/rook location, castling for black is no longer possible
+                    else if((m.from & 0x9100000000000000) != 0)
+                        {
+                        next_board.castle &= ~(Board.CASTLE_BIT_B_EAST | Board.CASTLE_BIT_B_WEST);
+                        }
                     break;
 
                 case MoveType.Capture:
                     //remove the captured piece
-                    next_board.RemovePiece( m.to );
+                    next_board.RemovePiece(m.to);
 
-                    if(m.promote_piece_index != Board.INDEX_COUNT)
+                    if (m.promote_piece_index != Board.INDEX_COUNT)
                     {
                         //promote the pawn
                         next_board.pieces[m.piece_index] &= ~m.from;
@@ -170,6 +182,17 @@ namespace ChessEngine
                         //move the piece
                         next_board.pieces[m.piece_index] &= ~m.from;
                         next_board.pieces[m.piece_index] |= m.to;
+                    }
+
+                    //if we are moving to the white king/rook location, castling for white is no longer possible
+                    if ((m.to & 0x0000000000000091) != 0)
+                    {
+                        next_board.castle &= ~(Board.CASTLE_BIT_W_EAST | Board.CASTLE_BIT_W_WEST);
+                    }
+                    //if we are moving to the black king/rook location, castling for black is no longer possible
+                    else if ((m.to & 0x9100000000000000) != 0)
+                    {
+                        next_board.castle &= ~(Board.CASTLE_BIT_B_EAST | Board.CASTLE_BIT_B_WEST);
                     }
                     break;
 
